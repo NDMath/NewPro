@@ -4,3 +4,6 @@ https://habr.com/ru/articles/814071/
 https://habr.com/ru/companies/ruvds/articles/717110/
 https://containers.dev/implementors/json_reference/
 https://xebia.com/blog/how-to-create-a-devcontainer-for-your-python-project/
+
+NEW:
+https://habr.com/ru/companies/wunderfund/articles/586778/
