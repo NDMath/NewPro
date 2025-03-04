@@ -1,8 +1,8 @@
-FROM python:3.12-slim-bookworm
+FROM python:3.13-slim-bookworm
 
 LABEL description="Docker image for python development" \
-    com.example.version="0.0.1" \
-    com.example.release-date="2024-05-22"
+    com.example.version="0.0.2" \
+    com.example.release-date="2025-03-04"
 
 # Prevents Python from writing pyc files.
 ENV PYTHONDONTWRITEBYTECODE 1
