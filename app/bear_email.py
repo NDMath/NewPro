@@ -4,33 +4,36 @@ import imaplib
 import json
 
 
-
 class EmailClient:
+
     def __init__(
-        self, sender_email: str, sender_password: str, smtp_server: str
+        self,
+        recipient_email: str,
+        recipient_password: str,
+        imap_server: str
     ) -> None:
+
         """
         Initializes the EmailClient with the sender email, password, and SMTP server.
 
         Args:
         ----
-        sender_email (str): The sender's email address.
-        sender_password (str): The sender's password.
-        smtp_server (str): The SMTP server to connect to.
+        recipient_email (str): The sender's email address.
+        recipient_password (str): The sender's password.
+        imap_server (str): The SMTP server to connect to.
         """
 
-        class EmailClient:
-            def __init__(self, sender_email, smtp_server):
-                self.sender_email = sender_email
-                self.smtp_server = smtp_server
-                self.sender_password = self._get_password()
+        self.recipient_email = recipient_email
+        self.recipient_password = recipient_password
+        self.imap_server = imap_server
 
-        self.sender_email = sender_email
-        self.sender_password = sender_password
-        self.smtp_server = smtp_server
-    def get_emails(self, mailbox: str = "inbox") -> list:
+    def get_emails(
+        self,
+        mailbox: str = "inbox"
+    ) -> list:
+
         """
-        Retrieves emails from the specified mailbox.
+        Retrieves emails from the specified mailbox. Using IMAP.
 
         Args:
         ----
@@ -40,15 +43,22 @@ class EmailClient:
         -------
         list: A list of email messages.
         """
-        if not self.sender_email or not self.sender_password or not self.smtp_server:
+
+        if not self.recipient_email or not self.recipient_password or not self.imap_server:
             raise ValueError("Missing required credentials")
 
-        with imaplib.IMAP4_SSL(self.smtp_server) as connection:
+        if not isinstance(mailbox, str):
+            raise TypeError("mailbox must be a string")
+
+        with imaplib.IMAP4_SSL(self.imap_server) as connection:
             try:
-                connection.login(self.sender_email, self.sender_password)
+                connection.login(self.recipient_email, self.recipient_password)
                 connection.select(mailbox, readonly=True)
 
                 status, messages = connection.search(None, "ALL")
+                if status != "OK":
+                    raise RuntimeError(f"Unable to search emails: {status}")
+
                 messages = messages[0].split()
 
                 emails = []
@@ -56,6 +66,10 @@ class EmailClient:
                     status, message_data = connection.fetch(
                         message_id, "(RFC822.HEADER)"
                     )
+                    if status != "OK":
+                        raise RuntimeError(
+                            f"Unable to fetch email {message_id}: {status}"
+                        )
                     raw_message = message_data[0][1]
                     email_message = email.message_from_bytes(raw_message)
                     emails.append(email_message)
@@ -70,12 +84,12 @@ with open('config.json', 'r') as f:
     config = json.load(f)
 
 # Access credentials
-sender_email = config['email_client']['sender_email']
-smtp_server = config['email_client']['smtp_server']
-sender_password = config['email_client']['sender_password']
+imap_server = config['email_client']['imap_server']
+recipient_email = config['email_client']['recipient_email']
+recipient_password = config['email_client']['recipient_password']
 
 # Create an instance of the EmailClient
-email_client = EmailClient(sender_email, sender_password, smtp_server)
+email_client = EmailClient(recipient_email, recipient_password, imap_server)
 
 # Get emails
 emails = email_client.get_emails()
